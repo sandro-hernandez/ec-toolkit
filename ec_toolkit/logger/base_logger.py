@@ -1,9 +1,36 @@
+"""
+base_logger.py
+
+This module defines an abstract base class `BaseLogger` for collecting
+time-series data at fixed intervals or on demand. Subclasses should
+implement the `collect()` method to gather specific metrics.
+
+Supports two modes:
+- 'interval': collect data periodically.
+- 'edge': collect data only at start/stop.
+
+Output is saved as a CSV file containing timestamped metric values.
+"""
+
 from abc import ABC, abstractmethod
 import time
 import csv
 from threading import Thread
 
 class BaseLogger(ABC):
+    """
+    Abstract base logger class.
+
+    Args:
+        output_path (str): Path to save the output CSV file.
+        interval (int): Time interval (in seconds) between samples in 'interval' mode.
+        mode (str): Logging mode - either 'interval' or 'edge'.
+
+    Attributes:
+        data (list): Raw data collected as (timestamp, value) tuples.
+        summary (list): Post-processed metrics, e.g., deltas between values.
+    """
+
     def __init__(self, output_path, interval=1, mode='interval'):
         self.output_path = output_path
         self.interval = interval
@@ -14,6 +41,13 @@ class BaseLogger(ABC):
 
     @abstractmethod
     def collect(self):
+        """
+        Collect a single metric sample.
+        Must be implemented by subclasses.
+
+        Returns:
+            Any: A numeric or structured metric value.
+        """
         pass
 
     def start(self):
