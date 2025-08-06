@@ -14,10 +14,6 @@ ec_toolkit/logger/freq_logger.py
 ec_toolkit/logger/manager.py
 ec_toolkit/logger/rapl_logger.py
 ec_toolkit/utils/__init__.py
-ec_toolkit/utils/common.py
-ec_toolkit/utils/compiler.py
-ec_toolkit/utils/config_handler.py
 ec_toolkit/utils/cpu.py
 ec_toolkit/utils/freq.py
 ec_toolkit/utils/rapl.py
-ec_toolkit/utils/runner.py
