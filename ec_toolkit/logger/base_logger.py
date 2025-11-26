@@ -31,13 +31,14 @@ class BaseLogger(ABC):
         summary (list): Post-processed metrics, e.g., deltas between values.
     """
 
-    def __init__(self, output_path, interval=1, mode='interval'):
+    def __init__(self, output_path, interval=1, mode='interval', save_to_csv=True):
         self.output_path = output_path
         self.interval = interval
         self.mode = mode
         self.running = False
         self.data = []
         self.summary = []
+        self.save_to_csv = save_to_csv
 
     @abstractmethod
     def collect(self):
@@ -81,6 +82,9 @@ class BaseLogger(ABC):
             self.summary.append((self.data[-1][0], diff))  # (timestamp, diff)
             
     def save(self):
+        if not self.save_to_csv:
+            return
+
         with open(self.output_path, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(["timestamp", "metric"])
