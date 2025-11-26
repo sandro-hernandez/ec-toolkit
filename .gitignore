@@ -1,45 +1,66 @@
-# Byte-compiled / optimized / DLL files
+# -------------------------------------------------------
+# Python bytecode / cache
+# -------------------------------------------------------
 __pycache__/
-ec_toolkit/logger/__pycache__/
-ec_toolkit/utils/__pycache__/
 *.py[cod]
 *$py.class
 
+# Egg metadata (created by pip install -e .)
+*.egg-info/
+.eggs/
 
-# C extensions
+# Compiled C extensions
 *.so
 
-# Distribution / packaging
-.Python
+# -------------------------------------------------------
+# Build / packaging / distribution
+# -------------------------------------------------------
 build/
-develop-eggs/
 dist/
+sdist/
+develop-eggs/
 downloads/
 eggs/
-.eggs/
-*.egg-info/
-.installed.cfg
-lib/
-lib64/
 parts/
-sdist/
 var/
-*.egg
 MANIFEST
 
-# Virtual environment
+# -------------------------------------------------------
+# Virtual environments
+# -------------------------------------------------------
 venv/
-ENV/
-env/
 .venv/
+env/
+ENV/
 
+# -------------------------------------------------------
+# Logs and experiment outputs
+# -------------------------------------------------------
+logs/
+*/logs/
+ec_toolkit/examples/demo_logs/
+*.sqlite
+*.log
+
+# -------------------------------------------------------
+# IDE / editor files
+# -------------------------------------------------------
+.vscode/
+.idea/
+
+# -------------------------------------------------------
+# OS files
+# -------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------------------------------------
 # PyInstaller
-*.manifest
+# -------------------------------------------------------
 *.spec
 
+# -------------------------------------------------------
 # Installer logs
+# -------------------------------------------------------
 pip-log.txt
 pip-delete-this-directory.txt
-
-# VS Code
-.vscode/
