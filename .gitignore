@@ -38,6 +38,7 @@ ENV/
 # -------------------------------------------------------
 logs/
 */logs/
+demo_logs/
 ec_toolkit/examples/demo_logs/
 *.sqlite
 *.log
