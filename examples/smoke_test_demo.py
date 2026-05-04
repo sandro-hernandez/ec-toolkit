@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from ec_toolkit.logger.manager import LoggerManager
-from ec_toolkit.utils.freq import restore_default, set_fixed_freq
+from ec_toolkit.utils.freq import _policy_dirs, _read_sysfs, restore_default, set_fixed_freq, set_freq_or_default
 
 
 RAPL_FILE = Path("/sys/class/powercap/intel-rapl:0/energy_uj")
@@ -35,9 +35,13 @@ def _available_logger_config(interval: float) -> tuple[dict, list[str]]:
     }
     enabled = ["execution_time", "cpu_total", "cpu_per_core"]
 
-    if _can_read(RAPL_FILE):
+    # if _can_read(RAPL_FILE):
+    if RAPL_FILE.exists():
         loggers["rapl"] = [{"enabled": True, "mode": "interval", "interval": interval}]
         enabled.append("rapl")
+        # rapl logger edge mode
+        loggers["rapl"].append({"enabled": True, "mode": "edge"})
+
 
     if any(glob.glob(CPUFREQ_GLOB)):
         loggers["freq_per_core"] = [{"enabled": True, "mode": "interval", "interval": interval}]
@@ -97,7 +101,7 @@ def main() -> None:
     parser.add_argument(
         "--upper-bound",
         type=int,
-        default=10_000,
+        default=100_000,
         help="Upper bound used by the prime-counting workload.",
     )
     parser.add_argument(
@@ -111,6 +115,12 @@ def main() -> None:
         type=int,
         default=None,
         help="Optional fixed CPU frequency in kHz to apply before the workload starts.",
+    )
+    parser.add_argument(
+        "--governor",
+        type=str,
+        default=None,
+        help="Optional CPU governor to apply before the workload starts.",
     )
     parser.add_argument(
         "--restore-default-after",
@@ -130,11 +140,19 @@ def main() -> None:
     print(f"[INFO] Enabled loggers: {', '.join(enabled_loggers)}")
     if args.fixed_freq_khz is not None:
         print(f"[INFO] Applying fixed CPU frequency: {args.fixed_freq_khz} kHz")
-        set_fixed_freq(args.fixed_freq_khz)
+        set_freq_or_default(args.fixed_freq_khz)
+    if args.governor is not None:
+        print(f"[INFO] Applying CPU governor: {args.governor}")
+        set_freq_or_default(args.governor)
     print(
         "[INFO] Running synthetic workload: "
         f"prime counting up to {args.upper_bound} for {args.duration:.1f}s"
     )
+    print("[INFO] Current CPU governor is set to: ")
+    for policy in _policy_dirs():
+        governor = _read_sysfs(f"{policy}/scaling_governor")
+        if governor:
+            print(f"  - {policy}: {governor}")
 
     manager.start_all()
     workload_stats = None
@@ -142,7 +160,7 @@ def main() -> None:
         workload_stats = run_synthetic_workload(args.duration, args.upper_bound)
     finally:
         manager.stop_all()
-        if args.fixed_freq_khz is not None and args.restore_default_after:
+        if (args.fixed_freq_khz is not None or args.governor is not None) and args.restore_default_after:
             print("[INFO] Restoring default CPU governor")
             restore_default()
 

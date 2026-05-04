@@ -72,15 +72,15 @@ def set_fixed_freq(khz: int) -> None:
     performance governor plus matching min/max bounds.
     """
     freq = str(int(khz))
-    policies = _policy_dirs()
+    # policies = _policy_dirs()
 
-    if policies and all(_supports_userspace(policy) for policy in policies):
-        for policy in policies:
-            _sudo_write_sysfs(f"{policy}/scaling_governor", "userspace")
-            _sudo_write_sysfs(f"{policy}/scaling_min_freq", freq)
-            _sudo_write_sysfs(f"{policy}/scaling_max_freq", freq)
-            _sudo_write_sysfs(f"{policy}/scaling_setspeed", freq)
-        return
+    # if policies and all(_supports_userspace(policy) for policy in policies):
+    #     for policy in policies:
+    #         _sudo_write_sysfs(f"{policy}/scaling_governor", "userspace")
+    #         _sudo_write_sysfs(f"{policy}/scaling_min_freq", freq)
+    #         _sudo_write_sysfs(f"{policy}/scaling_max_freq", freq)
+    #         _sudo_write_sysfs(f"{policy}/scaling_setspeed", freq)
+    #     return
 
     _sudo_cpupower("frequency-set", "-g", "performance")
     _sudo_cpupower("frequency-set", "-d", freq)
@@ -94,6 +94,7 @@ def set_freq_or_default(khz_or_gov: int | str) -> None:
     - If a known governor name, sets that governor.
     - If an int, sets fixed frequency.
     """
+    print(f"[DEBUG] Setting CPU frequency/governor to: {khz_or_gov}")
     governors = {"conservative", "ondemand", "userspace", "powersave", "performance", "schedutil"}
     if khz_or_gov == "default":
         set_governor("schedutil")
@@ -104,7 +105,21 @@ def set_freq_or_default(khz_or_gov: int | str) -> None:
 
 
 def restore_default() -> None:
-    """Convenience wrapper to go back to schedutil governor."""
+    """
+    Restore default CPU frequency behavior.
+
+    This clears fixed min/max bounds by restoring each policy to its hardware
+    frequency range, then switches back to the schedutil governor.
+    """
+    for policy in _policy_dirs():
+        min_freq = _read_sysfs(f"{policy}/cpuinfo_min_freq")
+        max_freq = _read_sysfs(f"{policy}/cpuinfo_max_freq")
+        if min_freq is None or max_freq is None:
+            continue
+
+        _sudo_write_sysfs(f"{policy}/scaling_max_freq", max_freq)
+        _sudo_write_sysfs(f"{policy}/scaling_min_freq", min_freq)
+
     set_governor("schedutil")
 
 
